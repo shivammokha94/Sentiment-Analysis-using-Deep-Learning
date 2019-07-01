@@ -8,12 +8,14 @@ Created on Sat Jun 29 18:44:11 2019
 
 import os
 import pandas as pd
+import numpy as np
+
 
 curr_path = os.getcwd()
 half_path_data = '/pretrain_data/dictionary.txt'     #Dictionary with sentences
 half_path_label = '/pretrain_data/sentiment_labels.txt'  #Dictionary for labels
-    
-    
+glove_path = '/pretrain_data/glove.6B/glove.6B.100d.txt'   #Glove 100 diamension vector representation   
+trainin_data_dir = '/Users/smokha/Projects/Produvia/NLP/Sentiment_Analysis/pretrain_data/training_data/'  #Test, Validation and Train data directory
 
 class preprocess():
 
@@ -33,3 +35,36 @@ class preprocess():
         sentence_merge = sentence_data.merge(sentence_labels, how = 'inner', on='index')   #Merge data
         
         return sentence_merge
+
+
+    
+    def gloveloader(glove_path):
+ 
+#Load stanford GloVe vector data       
+        print("Loading GloVe model from %s" % glove_path)
+        file = open(os.path.join(curr_path+glove_path), 'r', encoding = 'utf-8')       
+        model = {}
+        
+        for line in file:
+            splitvec = line.split()
+            word = splitvec[0]
+            embedding = np.array([float(val) for val in splitvec[1:]])
+            model[word] = embedding       
+        print("Completed. Total", len(model), "words loaded")     
+            
+        return model
+        
+    
+    def data_split(data, splitperc, trainin_data_dir):
+        
+#Split data into test, train and validation sets        
+        masker = np.random.rand(len(data)) < splitperc
+        train = data[masker]
+        test_val = data[~masker]
+        
+        masker_val = np.random.rand(len(test_val)) < 0.6
+        test = data[masker_val]
+        val = data[~masker_val]
+        
+        return train, test, val
+        
